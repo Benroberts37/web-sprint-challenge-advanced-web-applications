@@ -6,8 +6,8 @@ export default function Articles(props) {
   const {
     articles,
     getArticles,
+    setCurrentArticleId,
     deleteArticle,
-   updateArticle,
   } = props
   // ✨ where are my props? Destructure them here
 
@@ -17,11 +17,14 @@ export default function Articles(props) {
     return <Navigate to='/' />
   }
 
-
   useEffect(() => {
     // ✨ grab the articles here, on first render only
     getArticles()
   }, [])
+
+  const currentArticle = (id) => {
+    setCurrentArticleId(articles.find(art => art.article_id === id))
+  }
 
   return (
     // ✨ fix the JSX: replace `Function.prototype` with actual functions
@@ -29,7 +32,7 @@ export default function Articles(props) {
     <div className="articles">
       <h2>Articles</h2>
       {
-        ![].length
+        !articles.length
           ? 'No articles yet'
           : articles.map(art => {
             return (
@@ -40,8 +43,8 @@ export default function Articles(props) {
                   <p>Topic: {art.topic}</p>
                 </div>
                 <div>
-                <button onClick={() => deleteArticle(art.article_id)}>Del</button>
-                <button onClick={() => updateArticle(art.article_id)}>Del</button>
+                <button onClick={() => currentArticle(art.article_id)}>Edit</button>
+                <button onClick={() => deleteArticle(art.article_id)}>Delete</button>
                 </div>
               </div>
             )
