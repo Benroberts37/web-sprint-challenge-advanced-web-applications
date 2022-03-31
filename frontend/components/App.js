@@ -6,6 +6,7 @@ import Message from './Message'
 import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
 import axiosWithAuth from '../axios'
+import axios from 'axios'
 
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
@@ -14,7 +15,7 @@ export default function App() {
   // ✨ MVP can be achieved with these states
   const [message, setMessage] = useState('')
   const [articles, setArticles] = useState([])
-  const [currentArticleId, setCurrentArticleId] = useState()
+  const [currentArticleId, setCurrentArticleId] = useState(null)
   const [spinnerOn, setSpinnerOn] = useState(false)
 
   // ✨ Research `useNavigate` in React Router v.6
@@ -36,7 +37,7 @@ export default function App() {
   const login = ({ username, password }) => {
     setMessage("")
     setSpinnerOn(true)
-    axiosWithAuth().post(loginUrl, {username, password})
+    axios.post(loginUrl, {username, password})
       .then((res) => {
         window.localStorage.setItem("token",res.data.token)
         setSpinnerOn(false)
@@ -54,11 +55,11 @@ export default function App() {
   }
 
   const getArticles = () => {
+    setMessage('')
     setSpinnerOn(true)
     axiosWithAuth().get(articlesUrl)
       .then(res => {
         setArticles(res.data.articles)
-        setSpinnerOn(false)
         setMessage(res.data.message)
       })
       .catch(err => {
@@ -67,6 +68,9 @@ export default function App() {
         } else {
           console.error(err)
         }
+      })
+      .finally(() => {
+        setSpinnerOn(false)
       })
     // ✨ implement
     // We should flush the message state, turn on the spinner
@@ -85,7 +89,6 @@ export default function App() {
     .then(res => {
       setArticles([...articles, res.data.article])
       setMessage(res.data.message)
-      setSpinnerOn(false)
     })
     .catch(err => {
       if(err.response.status === 401) {
@@ -94,6 +97,9 @@ export default function App() {
         console.error(err)
       }
     })
+    .finally(() => {
+      setSpinnerOn(false)
+    })
     // ✨ implement
     // The flow is very similar to the `getArticles` function.
     // You'll know what to do! Use log statements or breakpoints
@@ -101,19 +107,21 @@ export default function App() {
   }
 
   const updateArticle = ({ article_id, article }) => {
-    setSpinnerOn(true)
     setMessage('')
+    setSpinnerOn(true)
     axiosWithAuth().put(`${articlesUrl}/${article_id}`, article)
     .then(res => {
       setArticles(articles.map(art => {
-        return (art.article_id === article.article_id) ? res.data.article : art
+        return art.article_id === article_id ? res.data.article : art
       }))
-      setCurrentArticleId()
-      setSpinnerOn(false)
       setMessage(res.data.message)
     })
     .catch(err => {
       console.error(err)
+      setMessage(err?.response?.data?.message)
+    })
+    .finally(() => {
+      setSpinnerOn(false)
     })
     // ✨ implement
     // You got this!
@@ -127,11 +135,13 @@ export default function App() {
         setArticles(articles.filter(art => {
           return (art.article_id != article_id)
         }))
-        setSpinnerOn(false)
         setMessage(res.data.message)
       })
       .catch(err => {
         console.error(err)
+      })
+      .finally(() => {
+        setSpinnerOn(false)
       })
     // ✨ implement
   }
@@ -139,7 +149,7 @@ export default function App() {
   return (
     // ✨ fix the JSX: `Spinner`, `Message`, `LoginForm`, `ArticleForm` and `Articles` expect props ❗
     <React.StrictMode>
-      <Spinner />
+      <Spinner on={spinnerOn}/>
       <Message message={message}/>
       <button id="logout" onClick={logout}>Logout from app</button>
       <div id="wrapper" style={{ opacity: spinnerOn ? "0.25" : "1" }}> {/* <-- do not change this line */}
@@ -156,16 +166,14 @@ export default function App() {
                 postArticle={postArticle}
                 updateArticle={updateArticle}
                 setCurrentArticleId={setCurrentArticleId}
-                article={articles.find((art)=> {
-                  return art.article_id === currentArticleId
-                })}
+                currentArticleId={currentArticleId}
+                articles={articles}
               />
               <Articles 
                 getArticles={getArticles}
                 articles={articles}
                 deleteArticle={deleteArticle}
                 setCurrentArticleId={setCurrentArticleId}
-                currentArticleId={currentArticleId}
               />
             </>
           } />

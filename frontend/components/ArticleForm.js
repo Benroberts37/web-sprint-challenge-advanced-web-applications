@@ -47,9 +47,10 @@ export default function ArticleForm(props) {
     }
   }
 
-  const cancelEdit = () => {
+  const cancelEdit = evt => {
+    evt.preventDefault()
     setValues(initialFormValues)
-    setCurrentArticleId()
+    setCurrentArticleId(null)
   }
 
   return (
