@@ -15,7 +15,7 @@ export default function App() {
   // ✨ MVP can be achieved with these states
   const [message, setMessage] = useState('')
   const [articles, setArticles] = useState([])
-  const [currentArticleId, setCurrentArticleId] = useState(null)
+  const [currentArticleId, setCurrentArticleId] = useState()
   const [spinnerOn, setSpinnerOn] = useState(false)
 
   // ✨ Research `useNavigate` in React Router v.6
@@ -106,25 +106,20 @@ export default function App() {
     // to inspect the response from the server.
   }
 
-  const updateArticle = ({ article_id, article }) => {
-    setMessage('')
+  const updateArticle = ( article_id, article ) => {
     setSpinnerOn(true)
     axiosWithAuth().put(`${articlesUrl}/${article_id}`, article)
-    .then(res => {
-      setArticles(articles.map(art => {
-        return art.article_id === article_id ? res.data.article : art
-      }))
-      setMessage(res.data.message)
-    })
-    .catch(err => {
-      console.error(err)
-      setMessage(err?.response?.data?.message)
-    })
-    .finally(() => {
-      setSpinnerOn(false)
-    })
-    // ✨ implement
-    // You got this!
+      .then(res => {
+        setArticles(articles.map(art => art.article_id === article_id ? res.data.article : art))
+        setMessage(res.data.message)
+        setCurrentArticleId(null)
+      })
+      .catch(err => {
+        err.response.status === 401 ? redirectToLogin() : setMessage(err.response.data.message)
+      })
+      .finally(() => {
+        setSpinnerOn(false)
+      })
   }
 
   const deleteArticle = article_id => {
@@ -166,14 +161,14 @@ export default function App() {
                 postArticle={postArticle}
                 updateArticle={updateArticle}
                 setCurrentArticleId={setCurrentArticleId}
-                currentArticleId={currentArticleId}
-                articles={articles}
+                currentArticle={articles.find(article => article.article_id === currentArticleId)}                
               />
               <Articles 
                 getArticles={getArticles}
                 articles={articles}
                 deleteArticle={deleteArticle}
                 setCurrentArticleId={setCurrentArticleId}
+                currentArticleId={currentArticleId}
               />
             </>
           } />

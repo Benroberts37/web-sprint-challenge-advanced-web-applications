@@ -7,6 +7,7 @@ export default function Articles(props) {
     articles,
     getArticles,
     setCurrentArticleId,
+    currentArticleId,
     deleteArticle,
   } = props
   // ✨ where are my props? Destructure them here
@@ -22,9 +23,7 @@ export default function Articles(props) {
     getArticles()
   }, [])
 
-  const currentArticle = (id) => {
-    setCurrentArticleId(articles.find(art => art.article_id === id))
-  }
+
 
   return (
     // ✨ fix the JSX: replace `Function.prototype` with actual functions
@@ -43,8 +42,8 @@ export default function Articles(props) {
                   <p>Topic: {art.topic}</p>
                 </div>
                 <div>
-                <button disabled={false} onClick={() => currentArticle(art.article_id)}>Edit</button>
-                <button disabled={false} onClick={() => deleteArticle(art.article_id)}>Delete</button>
+                <button disabled={currentArticleId} onClick={() => setCurrentArticleId(art.article_id)}>Edit</button>
+                <button disabled={currentArticleId} onClick={() => deleteArticle(art.article_id)}>Delete</button>
                 </div>
               </div>
             )
